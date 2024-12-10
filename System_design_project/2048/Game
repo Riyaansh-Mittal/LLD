@@ -1,0 +1,145 @@
+import random
+
+
+# Singleton Pattern
+class GameManager:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(GameManager, cls).__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        if not hasattr(self, "board"):
+            self.board = [[0] * 4 for _ in range(4)]  # Initialize the 4x4 board
+            self.observers = []  # List to hold observers
+            self.initialize_board()
+
+    def initialize_board(self):
+        """Initialize the game board with two random tiles."""
+        self.add_random_tile()
+        self.add_random_tile()
+
+    def add_random_tile(self):
+        """Add a new tile (2 or 4) to a random empty cell."""
+        empty_cells = [(i, j) for i in range(4) for j in range(4) if self.board[i][j] == 0]
+        if empty_cells:
+            row, col = random.choice(empty_cells)
+            self.board[row][col] = random.choice([2, 4])  # Either 2 or 4
+
+    def move(self, direction):
+        """
+        Handle the move logic for left, right, up, and down.
+        Placeholder for actual move logic.
+        """
+        # Example move logic
+        # Move logic implementation should be added here.
+        # For now, this is a placeholder.
+
+        # After each move, add a new tile
+        self.add_random_tile()
+
+        # Notify all observers about the board update
+        self.notify_observers()
+
+    def get_board(self):
+        """Get the current game board."""
+        return self.board
+
+    # Observer Pattern
+    def add_observer(self, observer):
+        """Add an observer."""
+        self.observers.append(observer)
+
+    def notify_observers(self):
+        """Notify all observers about the board update."""
+        for observer in self.observers:
+            observer.update(self.board)
+
+
+# Observer Base Class
+class GameObserver:
+    def update(self, board):
+        """Update method to be implemented by concrete observers."""
+        raise NotImplementedError
+
+
+# Example Concrete Observer
+class ConsoleObserver(GameObserver):
+    def update(self, board):
+        """Display the board on the console."""
+        print("Board updated:")
+        for row in board:
+            print(" ".join(str(x) if x > 0 else "-" for x in row))
+        print()
+
+
+# Usage
+if __name__ == "__main__":
+    # Get the Singleton instance of GameManager
+    game_manager = GameManager()
+
+    # Add a console observer
+    console_observer = ConsoleObserver()
+    game_manager.add_observer(console_observer)
+
+    # Display the initial board
+    console_observer.update(game_manager.get_board())
+
+    # Perform a move (example: left)
+    game_manager.move("left")
+
+# Observer Pattern - Interface
+class GameObserver:
+    def update(self, board):
+        """
+        Update method to be implemented by concrete observers.
+        """
+        raise NotImplementedError
+
+
+# Concrete Observer: ScoreManager
+class ScoreManager(GameObserver):
+    def __init__(self):
+        self.score = 0
+
+    def update(self, board):
+        """
+        Update the score based on the current state of the board.
+        Here, the score is the sum of all tile values.
+        """
+        self.score = self.calculate_score(board)
+        # Notify UI or other components (e.g., console output)
+        print(f"Score Updated: {self.score}")
+
+    def calculate_score(self, board):
+        """
+        Calculate the score as the sum of all tile values.
+        """
+        return sum(cell for row in board for cell in row)
+
+    def get_score(self):
+        """
+        Get the current score.
+        """
+        return self.score
+
+
+# PlayerData Class
+class PlayerData:
+    def __init__(self, player_name):
+        self.player_name = player_name
+        self.score = 0
+
+    def get_score(self):
+        """
+        Get the player's current score.
+        """
+        return self.score
+
+    def update_score(self, points):
+        """
+        Update the player's score by adding points.
+        """
+        self.score += points
