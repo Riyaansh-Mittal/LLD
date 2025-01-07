@@ -227,10 +227,8 @@ class BookingService(ABC):
 
 # BookingServiceImpl (concrete class)
 class BookingServiceImpl(BookingService):
-    def __init__(self, repository: InMemoryRepository, doctor_service: DoctorService, patient_service: PatientService):
+    def __init__(self, repository: InMemoryRepository):
         self._repository = repository
-        self._doctor_service = doctor_service
-        self._patient_service = patient_service
 
     def _find_slot_for_time(self, doctor: Doctor, start_time: str) -> TimeSlot:
         # Helper function to find a slot for the given time
@@ -321,7 +319,7 @@ class System:
         self._repository = InMemoryRepository()
         self._doctor_service = DoctorServiceImpl(self._repository)
         self._patient_service = PatientServiceImpl(self._repository)
-        self._booking_service = BookingServiceImpl(self._repository, self._doctor_service, self._patient_service)
+        self._booking_service = BookingServiceImpl(self._repository)
 
     def register_doc(self, name: str, specialty: str) -> str:
         return self._doctor_service.register_doc(name, specialty)
