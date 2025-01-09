@@ -42,14 +42,17 @@ class Station:
                     return True
         return False
 
-    def get_booked_percentage(self, vehicle_type):
-        total = len(self.vehicles.get(vehicle_type, []))
-        booked = len([v for v in self.vehicles.get(vehicle_type, []) if not v.is_available])
-        return booked / total if total else 0
+    def get_booked_percentage(self):
+        total_vehicles = sum(len(vehicles) for vehicles in self.vehicles.values())
+        booked_vehicles = sum(
+            sum(1 for v in vehicles if not v.is_available) for vehicles in self.vehicles.values()
+        )
+        return booked_vehicles / total_vehicles if total_vehicles > 0 else 0
+
 
     def update_pricing(self, pricing_strategy):
         for vehicle_type in self.vehicles:
-            booked_percentage = self.get_booked_percentage(vehicle_type)
+            booked_percentage = self.get_booked_percentage()
             if booked_percentage >= pricing_strategy.demand_threshold:
             # Apply dynamic pricing if not already applied
                 if not self.dynamic_pricing_applied:
@@ -106,7 +109,7 @@ class BookingManager:
         vehicle = available_vehicles[0]
         duration = self.calculate_duration(start_slot, end_slot)
 
-        booked_percentage = station.get_booked_percentage(vehicle_type)
+        booked_percentage = station.get_booked_percentage()
 
         # Calculate price based on the dynamic pricing strategy
         price = pricing_strategy.calculate_price(vehicle, duration, station, booked_percentage)
@@ -144,7 +147,7 @@ class BookingManager:
         if booking["vehicle"].is_available == False:
             booking["vehicle"].is_available = True
             del self.bookings[booking_id]
-            booked_percentage = station.get_booked_percentage(booking["vehicle"].vehicle_type)
+            booked_percentage = station.get_booked_percentage()
             # Update pricing for the station if needed
             station.update_pricing(pricing_strategy)
         return "Vehicle dropped successfully"
